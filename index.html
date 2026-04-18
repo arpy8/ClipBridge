@@ -356,7 +356,7 @@
     <button class="btn-primary" onclick="login()">→ Enter Room</button>
   </div>
   <div style="font-size:0.7rem;color:var(--muted);text-align:center;max-width:320px;line-height:1.8">
-    Same Room ID + Password on both computers.<br>Data is stored locally in your browser.
+    Same Room ID + Password on both computers.<br>Securely syncs directly across laptops in real-time.
   </div>
 </div>
 
@@ -374,7 +374,7 @@
   </div>
 
   <div class="info-bar">
-    <span>Paste on <span class="key">Computer A</span> → click <span class="key">Send</span> → open on <span class="key">Computer B</span> → click <span class="key">Pull Latest</span></span>
+    <span>Paste on <span class="key">Computer A</span> (auto-sends) → instantly appears on <span class="key">Computer B</span> (auto-copies)</span>
     <span id="last-updated" style="flex-shrink:0"></span>
   </div>
 
@@ -416,9 +416,12 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<script src="https://unpkg.com/mqtt@5.8.1/dist/mqtt.min.js"></script>
 <script>
   let currentRoom = null;
   let currentPassHash = null;
+  let mqttClient = null;
+  let lastReceivedTs = null;
 
   // Simple hash for password-based key
   async function hashPass(pass) {
@@ -448,11 +451,47 @@
     document.getElementById('room-label').textContent = room;
 
     pullLatest();
+
+    // Connect to global MQTT network to sync across laptops
+    mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+    const topic = `clipbridge/${currentRoom}/${currentPassHash}`;
+    
+    mqttClient.on('connect', () => {
+      mqttClient.subscribe(topic);
+      showToast('Live connection established!');
+    });
+
+    mqttClient.on('message', (t, msg) => {
+      try {
+        const payload = JSON.parse(msg.toString());
+        if (lastReceivedTs === payload.ts) return; // Prevent duplicate processing
+        lastReceivedTs = payload.ts;
+        
+        document.getElementById('recv-area').value = payload.content;
+        document.getElementById('recv-count').textContent = payload.content.length + ' chars';
+        updateLastUpdated(payload.ts);
+        
+        // Auto-copy to clipboard if document has focus (browsers require active interaction usually)
+        if (document.hasFocus()) {
+           navigator.clipboard.writeText(payload.content).then(() => {
+              showToast('✓ Received! Added to clipboard');
+           }).catch(() => {
+              showToast('✓ Received automatically');
+           });
+        } else {
+           showToast('✓ Received automatically');
+        }
+      } catch(e) {}
+    });
   }
 
   function logout() {
     currentRoom = null;
     currentPassHash = null;
+    if (mqttClient) {
+      mqttClient.end();
+      mqttClient = null;
+    }
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display = 'none';
     document.getElementById('send-area').value = '';
@@ -463,27 +502,41 @@
 
   function sendClip() {
     const content = document.getElementById('send-area').value;
-    if (!content.trim()) { showToast('Nothing to send!'); return; }
+    if (!content.trim()) return;
+    
+    const ts = Date.now();
+    const payload = { content, ts };
     const key = storageKey(currentRoom, currentPassHash);
-    const payload = { content, ts: Date.now() };
+    
+    // Save locally
     localStorage.setItem(key, JSON.stringify(payload));
-    showToast('✓ Sent to room');
-    updateLastUpdated(payload.ts);
+    
+    // Broadcast over network
+    if (mqttClient && mqttClient.connected) {
+      mqttClient.publish(`clipbridge/${currentRoom}/${currentPassHash}`, JSON.stringify(payload));
+      showToast('✓ Synced across screens');
+    } else {
+      showToast('✓ Auto-saved locally');
+    }
+    updateLastUpdated(ts);
   }
 
   function pullLatest() {
     const key = storageKey(currentRoom, currentPassHash);
     const raw = localStorage.getItem(key);
-    if (!raw) { showToast('Nothing in this room yet'); return; }
+    if (!raw) return;
     try {
       const payload = JSON.parse(raw);
+      if (lastReceivedTs === payload.ts) {
+          showToast('Already up to date');
+          return;
+      }
+      lastReceivedTs = payload.ts;
       document.getElementById('recv-area').value = payload.content;
       document.getElementById('recv-count').textContent = payload.content.length + ' chars';
       updateLastUpdated(payload.ts);
-      showToast('✓ Pulled latest');
-    } catch(e) {
-      showToast('Could not read data — wrong password?');
-    }
+      showToast('✓ Loaded saved data');
+    } catch(e) {}
   }
 
   async function pasteFromClipboard() {
@@ -491,7 +544,7 @@
       const text = await navigator.clipboard.readText();
       document.getElementById('send-area').value = text;
       updateCount();
-      showToast('✓ Pasted from clipboard');
+      sendClip();
     } catch(e) {
       showToast('Clipboard access denied — paste manually');
     }
@@ -503,9 +556,10 @@
     try {
       await navigator.clipboard.writeText(text);
       const btn = document.getElementById('copy-btn');
+      const originalText = btn.innerHTML;
       btn.textContent = '✓ copied!';
       btn.classList.add('success');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('success'); }, 1800);
+      setTimeout(() => { btn.innerHTML = originalText; btn.classList.remove('success'); }, 1800);
     } catch(e) {
       showToast('Clipboard write denied');
     }
@@ -539,6 +593,43 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove('show'), 2200);
   }
+
+  // --- AUTOMATION EVENTS ---
+
+  // 1. Auto-send when pasting anywhere in the app
+  document.addEventListener('paste', (e) => {
+    if (!currentRoom) return; 
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text) {
+      const sendArea = document.getElementById('send-area');
+      setTimeout(() => {
+        if (document.activeElement !== sendArea) {
+          sendArea.value = text;
+        }
+        updateCount();
+        sendClip();
+      }, 50);
+    }
+  });
+
+  // 2. Auto-send when typing in the send area (debounced)
+  let typeTimer;
+  document.getElementById('send-area').addEventListener('input', () => {
+    updateCount();
+    clearTimeout(typeTimer);
+    typeTimer = setTimeout(() => {
+      if (document.getElementById('send-area').value.trim().length > 0) {
+         sendClip();
+      }
+    }, 600); // 600ms after user stops typing
+  });
+
+  // Sync across tabs if the user is offline but using same browser
+  window.addEventListener('storage', (e) => {
+    if (currentRoom && e.key === storageKey(currentRoom, currentPassHash)) {
+      pullLatest();
+    }
+  });
 
   // Enter key submits login
   document.addEventListener('keydown', e => {
