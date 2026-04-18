@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipBridge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141418;
+    --border: #2a2a32;
+    --accent: #00e5a0;
+    --accent2: #7b61ff;
+    --text: #e8e8f0;
+    --muted: #5a5a72;
+    --danger: #ff4d6d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    animation: fadeUp .5s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .logo span { color: var(--accent); }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: -20px;
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px 40px;
+    width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    isolation: isolate;
+  }
+
+  .login-box label {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .login-box input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .login-box input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-primary:hover { opacity: .88; }
+  .btn-primary:active { transform: scale(.98); }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 0.78rem;
+    text-align: center;
+    min-height: 18px;
+  }
+
+  /* ── MAIN APP ── */
+  #app-screen {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 860px;
+    gap: 20px;
+    animation: fadeUp .4s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header .logo { font-size: 1.5rem; }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background .3s;
+  }
+  .dot.live { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-ghost:hover { border-color: var(--danger); color: var(--danger); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-label {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .panel-actions { display: flex; gap: 8px; }
+
+  .btn-sm {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.success { border-color: var(--accent); color: var(--accent); }
+
+  textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 260px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    padding: 18px;
+    resize: none;
+  }
+  textarea::placeholder { color: var(--muted); }
+
+  .panel-footer {
+    padding: 10px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .char-count { font-size: 0.7rem; color: var(--muted); }
+
+  .send-btn {
+    background: var(--accent2);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 9px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    letter-spacing: .5px;
+  }
+  .send-btn:hover { opacity: .85; }
+  .send-btn:active { transform: scale(.97); }
+
+  /* Received panel accent */
+  .panel.received { border-color: #1e2e25; }
+  .panel.received .panel-header { border-bottom-color: #1e2e25; }
+  .panel.received .panel-footer { border-top-color: #1e2e25; }
+  .panel-label.rx { color: var(--accent); }
+
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .clear-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  .info-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    isolation: isolate;
+  }
+  .info-bar .key { color: var(--accent); }
+  .info-bar span { margin-right: auto; }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 0.78rem;
+    color: var(--accent);
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
+  @media (max-width: 620px) {
+    .grid { grid-template-columns: 1fr; }
+    .login-box { width: 100%; padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div>
+    <div class="logo">Clip<span>Bridge</span></div>
+    <!-- <div class="tagline">Instant clipboard sharing</div> -->
+  </div>
+  <div class="login-box">
+    <div>
+      <label>Room ID</label>
+      <input type="text" id="room-input" placeholder="my-room-123" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div>
+      <label>Password</label>
+      <input type="password" id="pass-input" placeholder="••••••••" autocomplete="off"/>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <button class="btn-primary" onclick="login()">→ Enter Room</button>
+  </div>
+  <div style="font-size:0.7rem;color:var(--muted);text-align:center;max-width:320px;line-height:1.8">
+    Same Room ID + Password on both computers.<br>Data is stored locally in your browser.
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="header">
+    <div class="logo" style="font-size:1.4rem">Clip<span style="color:var(--accent)">Bridge</span></div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="status-bar">
+        <div class="dot live" id="status-dot"></div>
+        <span id="status-text">room: <span id="room-label" style="color:var(--text)"></span></span>
+      </div>
+      <button class="btn-ghost" onclick="logout()">leave</button>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <span>Paste on <span class="key">Computer A</span> → click <span class="key">Send</span> → open on <span class="key">Computer B</span> → click <span class="key">Pull Latest</span></span>
+    <span id="last-updated" style="flex-shrink:0"></span>
+  </div>
+
+  <div class="grid">
+    <!-- SEND PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label">✦ compose / paste</span>
+        <div class="panel-actions">
+          <button class="btn-sm" onclick="pasteFromClipboard()">⌘ paste</button>
+          <button class="btn-sm" onclick="clearSend()">clear</button>
+        </div>
+      </div>
+      <textarea id="send-area" placeholder="Paste or type your content here, then hit Send…" oninput="updateCount()"></textarea>
+      <div class="panel-footer">
+        <span class="char-count" id="char-count">0 chars</span>
+        <button class="send-btn" onclick="sendClip()">Send →</button>
+      </div>
+    </div>
+
+    <!-- RECEIVE PANEL -->
+    <div class="panel received">
+      <div class="panel-header">
+        <span class="panel-label rx">↓ received</span>
+        <div class="panel-actions">
+          <button class="btn-sm" id="copy-btn" onclick="copyReceived()">copy</button>
+          <button class="btn-sm" onclick="pullLatest()">⟳ pull latest</button>
+        </div>
+      </div>
+      <textarea id="recv-area" placeholder="Content sent from the other computer will appear here…" readonly></textarea>
+      <div class="panel-footer">
+        <span class="char-count" id="recv-count">0 chars</span>
+        <button class="clear-btn" onclick="clearReceived()">clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentRoom = null;
+  let currentPassHash = null;
+
+  // Simple hash for password-based key
+  async function hashPass(pass) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0,16);
+  }
+
+  function storageKey(room, hash) {
+    return `clipbridge__${room}__${hash}`;
+  }
+
+  async function login() {
+    const room = document.getElementById('room-input').value.trim();
+    const pass = document.getElementById('pass-input').value;
+    const errEl = document.getElementById('error-msg');
+
+    if (!room) { errEl.textContent = 'Room ID cannot be empty.'; return; }
+    if (!pass)  { errEl.textContent = 'Password cannot be empty.'; return; }
+
+    errEl.textContent = '';
+    const hash = await hashPass(pass);
+    currentRoom = room;
+    currentPassHash = hash;
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
+    document.getElementById('room-label').textContent = room;
+
+    pullLatest();
+  }
+
+  function logout() {
+    currentRoom = null;
+    currentPassHash = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('send-area').value = '';
+    document.getElementById('recv-area').value = '';
+    document.getElementById('pass-input').value = '';
+    updateCount();
+  }
+
+  function sendClip() {
+    const content = document.getElementById('send-area').value;
+    if (!content.trim()) { showToast('Nothing to send!'); return; }
+    const key = storageKey(currentRoom, currentPassHash);
+    const payload = { content, ts: Date.now() };
+    localStorage.setItem(key, JSON.stringify(payload));
+    showToast('✓ Sent to room');
+    updateLastUpdated(payload.ts);
+  }
+
+  function pullLatest() {
+    const key = storageKey(currentRoom, currentPassHash);
+    const raw = localStorage.getItem(key);
+    if (!raw) { showToast('Nothing in this room yet'); return; }
+    try {
+      const payload = JSON.parse(raw);
+      document.getElementById('recv-area').value = payload.content;
+      document.getElementById('recv-count').textContent = payload.content.length + ' chars';
+      updateLastUpdated(payload.ts);
+      showToast('✓ Pulled latest');
+    } catch(e) {
+      showToast('Could not read data — wrong password?');
+    }
+  }
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      document.getElementById('send-area').value = text;
+      updateCount();
+      showToast('✓ Pasted from clipboard');
+    } catch(e) {
+      showToast('Clipboard access denied — paste manually');
+    }
+  }
+
+  async function copyReceived() {
+    const text = document.getElementById('recv-area').value;
+    if (!text) { showToast('Nothing to copy'); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ copied!';
+      btn.classList.add('success');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('success'); }, 1800);
+    } catch(e) {
+      showToast('Clipboard write denied');
+    }
+  }
+
+  function clearSend() {
+    document.getElementById('send-area').value = '';
+    updateCount();
+  }
+
+  function clearReceived() {
+    document.getElementById('recv-area').value = '';
+    document.getElementById('recv-count').textContent = '0 chars';
+  }
+
+  function updateCount() {
+    const len = document.getElementById('send-area').value.length;
+    document.getElementById('char-count').textContent = len + ' chars';
+  }
+
+  function updateLastUpdated(ts) {
+    const d = new Date(ts);
+    document.getElementById('last-updated').textContent =
+      'last: ' + d.toLocaleTimeString();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // Enter key submits login
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+      login();
+    }
+  });
+</script>
+</body>
+</html>
