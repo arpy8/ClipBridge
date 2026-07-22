@@ -6,161 +6,86 @@
 <title>ClipBridge</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-
   :root {
-    --bg: #0d0d0f;
-    --surface: #141418;
-    --border: #2a2a32;
-    --accent: #00e5a0;
-    --text: #e8e8f0;
-    --muted: #5a5a72;
-    --danger: #ff4d6d;
-    --warning: #f5a623;
+    --bg: #0d0d0f; --surface: #141418; --border: #2a2a32;
+    --accent: #00e5a0; --text: #e8e8f0; --muted: #5a5a72;
+    --danger: #ff4d6d; --warning: #f5a623; --p2p: #7c9eff;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'JetBrains Mono', monospace;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 24px;
   }
-
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.2;
-    pointer-events: none;
+    background-size: 40px 40px; opacity: 0.2; pointer-events: none;
   }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 640px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
+  .container { position: relative; z-index: 1; width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 16px; }
   .logo { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
   .logo span { color: var(--accent); }
-
   .row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px;
   }
-
-  .lbl {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
+  .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); white-space: nowrap; }
   input[type=text], input[type=password] {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    outline: none;
-    transition: border-color 0.2s;
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 8px 12px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s;
   }
   input[type=text]:focus, input[type=password]:focus { border-color: var(--accent); }
-
+  .dots { display: flex; gap: 6px; }
   .dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--muted); flex-shrink: 0; transition: background 0.3s;
   }
   .dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
-
+  .dot.p2p { background: var(--muted); }
+  .dot.p2p.on { background: var(--p2p); box-shadow: 0 0 6px var(--p2p); }
   textarea {
-    width: 100%; min-height: 220px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    line-height: 1.7;
-    outline: none; resize: vertical; transition: border-color 0.2s;
+    width: 100%; min-height: 200px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    line-height: 1.7; outline: none; resize: vertical;
+    transition: border-color 0.2s;
   }
   textarea:focus { border-color: var(--border); }
   textarea::placeholder { color: var(--muted); }
-
-  /* File drop zone */
   .dropzone {
-    border: 1px dashed var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
+    border: 1px dashed var(--border); border-radius: 10px;
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s; position: relative;
   }
-  .dropzone:hover, .dropzone.over {
-    border-color: var(--accent);
-    background: rgba(0,229,160,0.04);
-  }
-  .dropzone input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
+  .dropzone:hover, .dropzone.over { border-color: var(--accent); background: rgba(0,229,160,0.04); }
+  .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .dropzone-inner { pointer-events: none; }
   .dropzone-icon { font-size: 1.6rem; margin-bottom: 6px; color: var(--muted); }
   .dropzone-label { font-size: 0.78rem; color: var(--muted); }
   .dropzone-label span { color: var(--accent); }
-
-  /* Progress bar */
+  .dropzone.disabled { opacity: 0.4; pointer-events: none; }
   .progress-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    display: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; display: none;
   }
   .progress-wrap.visible { display: block; }
   .progress-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
   .progress-bar-bg { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.15s; }
-
-  /* File tray */
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.1s; }
+  .progress-meta { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.68rem; color: var(--muted); }
   .tray {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    display: none;
-    flex-direction: column;
-    gap: 0;
-    overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; display: none; flex-direction: column;
+    gap: 0; overflow: hidden;
   }
   .tray.visible { display: flex; }
-  .tray-header {
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--border);
-  }
+  .tray-header { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--border); }
   .tray-item {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 16px; border-bottom: 1px solid var(--border);
@@ -170,20 +95,13 @@
   .tray-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tray-size { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
   .tray-dl {
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 5px;
-    padding: 3px 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: background 0.15s;
-    white-space: nowrap;
+    background: transparent; border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 5px; padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    cursor: pointer; transition: background 0.15s; white-space: nowrap;
   }
   .tray-dl:hover { background: rgba(0,229,160,0.12); }
-  .tray-incoming { color: var(--warning); font-size: 0.72rem; }
-
+  .tray-incoming { color: var(--warning); font-size: 0.72rem; white-space: nowrap; }
   .footer { display: flex; justify-content: space-between; align-items: center; }
   .hint { font-size: 0.7rem; color: var(--muted); }
   .status {
@@ -192,8 +110,8 @@
     border-radius: 6px; color: var(--muted); transition: color 0.2s, border-color 0.2s;
   }
   .status.ok { color: var(--accent); border-color: #1e2e25; }
+  .status.p2p { color: var(--p2p); border-color: #232a3d; }
   .status.warn { color: var(--warning); border-color: #2e2618; }
-
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   @media (max-width: 500px) { .row { flex-wrap: wrap; } }
 </style>
@@ -207,24 +125,25 @@
     <input type="text" id="room" placeholder="my-room" autocomplete="off" spellcheck="false" />
     <span class="lbl">Pass</span>
     <input type="password" id="pass" placeholder="••••" autocomplete="off" />
-    <div class="dot" id="dot"></div>
+    <div class="dots">
+      <div class="dot" id="dot" title="MQTT signaling"></div>
+      <div class="dot p2p" id="dotP2P" title="WebRTC P2P"></div>
+    </div>
   </div>
 
-  <textarea id="area" placeholder="Paste here on one device → instantly appears on the other.
+  <textarea id="area" placeholder="Paste here → syncs to paired device.
 
-Same Room + Password on both devices.
-Works across any two computers on the internet."></textarea>
+Text goes via MQTT (works even if peer is briefly offline).
+Files go peer-to-peer via WebRTC (fast, direct)."></textarea>
 
-  <!-- File drop zone -->
   <div class="dropzone" id="dropzone">
     <input type="file" id="fileInput" multiple />
     <div class="dropzone-inner">
       <div class="dropzone-icon">📎</div>
-      <div class="dropzone-label">Drop files here or <span>browse</span> — sends to paired device</div>
+      <div class="dropzone-label" id="dropLabel">Waiting for peer to connect for P2P transfer…</div>
     </div>
   </div>
 
-  <!-- Upload progress -->
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-label">
       <span id="progressName">Sending…</span>
@@ -233,53 +152,64 @@ Works across any two computers on the internet."></textarea>
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
     </div>
+    <div class="progress-meta">
+      <span id="progressSpeed">—</span>
+      <span id="progressEta">—</span>
+    </div>
   </div>
 
-  <!-- Received files tray -->
   <div class="tray" id="tray">
     <div class="tray-header">received files</div>
     <div id="trayItems"></div>
   </div>
 
   <div class="footer">
-    <span class="hint">text: auto-send on paste · 600ms debounce · files: chunked transfer</span>
+    <span class="hint">🟢 mqtt · 🔵 webrtc p2p (files fly direct)</span>
     <span class="status" id="status">not connected</span>
   </div>
 </div>
 
 <script src="https://unpkg.com/mqtt@5.8.1/dist/mqtt.min.js"></script>
 <script>
+  // ---------- state ----------
+  const myId = Math.random().toString(36).slice(2, 10);
   let client = null, hash = null, lastTs = null, typeTimer = null;
-  const CHUNK_SIZE = 32 * 1024; // 32 KB per chunk (MQTT payload safe)
+  let pc = null, dc = null, isInitiator = false, peerId = null;
+  let remoteReady = false; // data channel open both ways
+  const inFlight = {}; // transferId -> reassembly state
 
-  // --- in-flight reassembly map ---
-  // key: transferId, value: { name, size, totalChunks, chunks: Map<index, b64str>, mime }
-  const inFlight = {};
-
+  // ---------- utils ----------
   async function hashPass(s) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
     return Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2,'0')).join('').slice(0, 12);
   }
+  const topic = (suffix='') => `cb3/${document.getElementById('room').value.trim()}/${hash}${suffix}`;
+  const $ = id => document.getElementById(id);
+  const escHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtSize = b => b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(2)+' MB';
+  const fmtSpeed = bps => bps < 1048576 ? (bps/1024).toFixed(0)+' KB/s' : (bps/1048576).toFixed(1)+' MB/s';
 
-  function topic(suffix = '') {
-    return `cb2/${document.getElementById('room').value.trim()}/${hash}${suffix}`;
-  }
-
-  function setStatus(msg, cls = '') {
-    const el = document.getElementById('status');
+  function setStatus(msg, cls='') {
+    const el = $('status');
     el.textContent = msg;
-    el.className = 'status' + (cls ? ' ' + cls : '');
+    el.className = 'status' + (cls ? ' '+cls : '');
+  }
+  function setDot(on) { $('dot').className = 'dot' + (on ? ' on' : ''); }
+  function setDotP2P(on) {
+    $('dotP2P').className = 'dot p2p' + (on ? ' on' : '');
+    $('dropzone').classList.toggle('disabled', !on);
+    $('dropLabel').innerHTML = on
+      ? 'Drop files here or <span>browse</span> — peer-to-peer transfer'
+      : 'Waiting for peer to connect for P2P transfer…';
   }
 
-  function setDot(on) {
-    document.getElementById('dot').className = 'dot' + (on ? ' on' : '');
-  }
-
+  // ---------- MQTT (signaling + text) ----------
   async function connect() {
-    const room = document.getElementById('room').value.trim();
-    const pass = document.getElementById('pass').value;
+    const room = $('room').value.trim();
+    const pass = $('pass').value;
     if (!room || !pass) return;
     if (client) { client.end(); client = null; }
+    tearDownPeer();
 
     hash = await hashPass(pass);
     setStatus('connecting…');
@@ -287,216 +217,291 @@ Works across any two computers on the internet."></textarea>
     client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
 
     client.on('connect', () => {
-      client.subscribe(topic());
-      client.subscribe(topic('/file'));
+      client.subscribe(topic());          // text
+      client.subscribe(topic('/sig'));    // signaling
       setDot(true);
-      setStatus('connected', 'ok');
+      setStatus('connected, finding peer…', 'ok');
+      // announce presence
+      publishSig({ kind: 'hello', from: myId });
     });
     client.on('error', () => setStatus('error'));
-    client.on('close', () => { setDot(false); setStatus('disconnected'); });
+    client.on('close', () => { setDot(false); setDotP2P(false); setStatus('disconnected'); tearDownPeer(); });
 
     client.on('message', (t, msg) => {
-      if (t.endsWith('/file')) {
-        handleFileMessage(msg);
-      } else {
-        handleTextMessage(msg);
-      }
+      if (t.endsWith('/sig')) handleSig(msg);
+      else handleTextMessage(msg);
     });
   }
 
   function handleTextMessage(msg) {
     try {
       const p = JSON.parse(msg.toString());
+      if (p.from === myId) return;
       if (p.ts === lastTs) return;
       lastTs = p.ts;
-      document.getElementById('area').value = p.content;
+      $('area').value = p.content;
       navigator.clipboard.writeText(p.content).catch(() => {});
-      setStatus('received!', 'ok');
-      setTimeout(() => setStatus('connected', 'ok'), 2000);
+      setStatus('text received', 'ok');
+      setTimeout(() => setStatus(remoteReady ? 'p2p connected' : 'connected', remoteReady ? 'p2p' : 'ok'), 1800);
     } catch(e) {}
   }
 
-  function handleFileMessage(msg) {
-    try {
-      const p = JSON.parse(msg.toString());
-
-      // ignore our own messages
-      if (p.origin === myId) return;
-
-      const { transferId, name, mime, size, totalChunks, chunkIndex, data } = p;
-
-      if (!inFlight[transferId]) {
-        inFlight[transferId] = { name, mime, size, totalChunks, chunks: new Map() };
-        showIncomingIndicator(transferId, name, totalChunks);
-      }
-
-      const tf = inFlight[transferId];
-      tf.chunks.set(chunkIndex, data);
-
-      updateIncomingProgress(transferId, tf.chunks.size, tf.totalChunks);
-
-      if (tf.chunks.size === tf.totalChunks) {
-        reassembleFile(transferId, tf);
-        delete inFlight[transferId];
-      }
-    } catch(e) { console.error(e); }
-  }
-
-  function showIncomingIndicator(transferId, name, totalChunks) {
-    const tray = document.getElementById('tray');
-    const items = document.getElementById('trayItems');
-    tray.classList.add('visible');
-
-    const div = document.createElement('div');
-    div.className = 'tray-item';
-    div.id = 'incoming-' + transferId;
-    div.innerHTML = `<span class="tray-name">${escHtml(name)}</span><span class="tray-incoming" id="iprog-${transferId}">0 / ${totalChunks} chunks</span>`;
-    items.appendChild(div);
-  }
-
-  function updateIncomingProgress(transferId, received, total) {
-    const el = document.getElementById('iprog-' + transferId);
-    if (el) el.textContent = `${received} / ${total} chunks`;
-  }
-
-  function reassembleFile(transferId, tf) {
-    const parts = [];
-    for (let i = 0; i < tf.totalChunks; i++) {
-      const b64 = tf.chunks.get(i);
-      const binary = atob(b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
-      parts.push(bytes);
-    }
-
-    const blob = new Blob(parts, { type: tf.mime || 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-
-    const row = document.getElementById('incoming-' + transferId);
-    if (row) {
-      row.innerHTML = `
-        <span class="tray-name">${escHtml(tf.name)}</span>
-        <span class="tray-size">${fmtSize(tf.size)}</span>
-        <button class="tray-dl" onclick="triggerDownload('${url}','${escHtml(tf.name)}')">↓ save</button>
-      `;
-    }
-
-    setStatus('file received!', 'ok');
-    setTimeout(() => setStatus('connected', 'ok'), 2500);
-  }
-
-  function triggerDownload(url, name) {
-    const a = document.createElement('a');
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }
-
-  function fmtSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-  }
-
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // unique ID to suppress our own reflected messages
-  const myId = Math.random().toString(36).slice(2);
-
-  async function sendFile(file) {
-    if (!client || !client.connected) { setStatus('not connected'); return; }
-
-    const MAX_MB = 5;
-    if (file.size > MAX_MB * 1024 * 1024) {
-      setStatus(`max ${MAX_MB} MB per file`, 'warn');
-      setTimeout(() => setStatus('connected', 'ok'), 3000);
-      return;
-    }
-
-    const transferId = Math.random().toString(36).slice(2);
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    const totalChunks = Math.ceil(bytes.length / CHUNK_SIZE);
-
-    // show progress
-    const pw = document.getElementById('progressWrap');
-    pw.classList.add('visible');
-    document.getElementById('progressName').textContent = file.name;
-
-    for (let i = 0; i < totalChunks; i++) {
-      const slice = bytes.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-      // base64 encode
-      let binary = '';
-      for (let j = 0; j < slice.length; j++) binary += String.fromCharCode(slice[j]);
-      const b64 = btoa(binary);
-
-      const payload = JSON.stringify({
-        origin: myId,
-        transferId,
-        name: file.name,
-        mime: file.type || 'application/octet-stream',
-        size: file.size,
-        totalChunks,
-        chunkIndex: i,
-        data: b64
-      });
-
-      client.publish(topic('/file'), payload);
-
-      const pct = Math.round(((i + 1) / totalChunks) * 100);
-      document.getElementById('progressPct').textContent = pct + '%';
-      document.getElementById('progressBar').style.width = pct + '%';
-
-      // yield to avoid blocking
-      await new Promise(r => setTimeout(r, 10));
-    }
-
-    setStatus('file sent!', 'ok');
-    setTimeout(() => { setStatus('connected', 'ok'); pw.classList.remove('visible'); }, 2500);
-  }
-
-  function publish(content) {
+  function publishText(content) {
     if (!client || !client.connected) return;
     const ts = Date.now();
     lastTs = ts;
-    client.publish(topic(), JSON.stringify({ content, ts }));
-    setStatus('synced!', 'ok');
-    setTimeout(() => setStatus('connected', 'ok'), 1500);
+    client.publish(topic(), JSON.stringify({ content, ts, from: myId }));
   }
 
-  // Connect triggers
-  document.getElementById('room').addEventListener('change', connect);
-  document.getElementById('pass').addEventListener('change', connect);
+  function publishSig(obj) {
+    if (!client?.connected) return;
+    client.publish(topic('/sig'), JSON.stringify(obj));
+  }
+
+  // ---------- WebRTC signaling logic ----------
+  function handleSig(msg) {
+    let m; try { m = JSON.parse(msg.toString()); } catch { return; }
+    if (m.from === myId) return;
+    // ignore messages not addressed to us (once we've paired)
+    if (m.to && m.to !== myId) return;
+
+    if (m.kind === 'hello') {
+      // someone joined; respond so they know we're here
+      peerId = m.from;
+      publishSig({ kind: 'hello-ack', from: myId, to: peerId });
+      // deterministic initiator: lower ID initiates
+      if (myId < peerId) startPeer(true);
+    } else if (m.kind === 'hello-ack') {
+      peerId = m.from;
+      if (myId < peerId) startPeer(true);
+    } else if (m.kind === 'offer') {
+      peerId = m.from;
+      startPeer(false).then(() => acceptOffer(m.sdp));
+    } else if (m.kind === 'answer') {
+      pc?.setRemoteDescription({ type: 'answer', sdp: m.sdp }).catch(console.error);
+    } else if (m.kind === 'ice') {
+      pc?.addIceCandidate(m.candidate).catch(() => {});
+    }
+  }
+
+  async function startPeer(initiator) {
+    if (pc) return;
+    isInitiator = initiator;
+
+    pc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    pc.onicecandidate = e => {
+      if (e.candidate) publishSig({ kind: 'ice', from: myId, to: peerId, candidate: e.candidate });
+    };
+    pc.onconnectionstatechange = () => {
+      if (['failed','disconnected','closed'].includes(pc.connectionState)) {
+        setDotP2P(false); remoteReady = false;
+        setStatus('p2p lost, mqtt only', 'warn');
+      }
+    };
+
+    if (initiator) {
+      dc = pc.createDataChannel('files', { ordered: true });
+      setupDC();
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      publishSig({ kind: 'offer', from: myId, to: peerId, sdp: offer.sdp });
+    } else {
+      pc.ondatachannel = e => { dc = e.channel; setupDC(); };
+    }
+  }
+
+  async function acceptOffer(sdp) {
+    await pc.setRemoteDescription({ type: 'offer', sdp });
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    publishSig({ kind: 'answer', from: myId, to: peerId, sdp: answer.sdp });
+  }
+
+  function setupDC() {
+    dc.binaryType = 'arraybuffer';
+    dc.onopen = () => {
+      remoteReady = true;
+      setDotP2P(true);
+      setStatus('p2p connected', 'p2p');
+    };
+    dc.onclose = () => { remoteReady = false; setDotP2P(false); };
+    dc.onmessage = handleDCMessage;
+  }
+
+  function tearDownPeer() {
+    remoteReady = false; setDotP2P(false);
+    if (dc) { try { dc.close(); } catch{} dc = null; }
+    if (pc) { try { pc.close(); } catch{} pc = null; }
+    peerId = null;
+  }
+
+  // ---------- File transfer over data channel ----------
+  // Wire protocol: JSON header messages + raw ArrayBuffer chunks.
+  //   { kind:'file-start', id, name, mime, size, totalChunks }
+  //   ArrayBuffer with 4-byte id-hash prefix? -> simpler: header before each burst
+  //   Actually we serialize: one file at a time per transferId, chunks arrive in order.
+  //   We tag chunks with a small binary header: [4 bytes transferId int][4 bytes chunkIndex]
+  // Simpler approach used here: send file-start header, then raw ArrayBuffers (in order),
+  // then file-end. Only one file per direction in flight at a time (queued).
+
+  const sendQueue = [];
+  let sending = false;
+
+  async function sendFile(file) {
+    sendQueue.push(file);
+    if (!sending) processQueue();
+  }
+
+  async function processQueue() {
+    sending = true;
+    while (sendQueue.length) {
+      const file = sendQueue.shift();
+      await doSendFile(file);
+    }
+    sending = false;
+  }
+
+  const CHUNK_SIZE = 64 * 1024; // 64 KB — safe, fast
+  const HIGH_WATER = 1024 * 1024; // 1 MB pause threshold
+
+  async function doSendFile(file) {
+    if (!remoteReady) { setStatus('no p2p peer', 'warn'); return; }
+
+    const id = Math.random().toString(36).slice(2);
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const totalBytes = file.size;
+
+    dc.send(JSON.stringify({
+      kind: 'file-start', id, name: file.name,
+      mime: file.type || 'application/octet-stream',
+      size: totalBytes, totalChunks
+    }));
+
+    $('progressWrap').classList.add('visible');
+    $('progressName').textContent = file.name;
+
+    const started = performance.now();
+    let sent = 0;
+
+    for (let i = 0; i < totalChunks; i++) {
+      const slice = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      const buf = await slice.arrayBuffer();
+
+      // Backpressure: pause if outbound buffer is full
+      while (dc.bufferedAmount > HIGH_WATER) {
+        await new Promise(r => setTimeout(r, 5));
+      }
+
+      dc.send(buf);
+      sent += buf.byteLength;
+
+      if (i % 8 === 0 || i === totalChunks - 1) {
+        const pct = Math.round((sent / totalBytes) * 100);
+        const elapsed = (performance.now() - started) / 1000;
+        const speed = sent / elapsed;
+        const eta = (totalBytes - sent) / speed;
+        $('progressPct').textContent = pct + '%';
+        $('progressBar').style.width = pct + '%';
+        $('progressSpeed').textContent = fmtSpeed(speed);
+        $('progressEta').textContent = eta < 1 ? 'done' : eta.toFixed(1) + 's left';
+      }
+    }
+
+    dc.send(JSON.stringify({ kind: 'file-end', id }));
+
+    const elapsed = ((performance.now() - started) / 1000).toFixed(1);
+    setStatus(`sent in ${elapsed}s`, 'p2p');
+    setTimeout(() => {
+      $('progressWrap').classList.remove('visible');
+      setStatus(remoteReady ? 'p2p connected' : 'connected', remoteReady ? 'p2p' : 'ok');
+    }, 2500);
+  }
+
+  // ---------- receiving ----------
+  let currentIncoming = null; // { id, name, mime, size, totalChunks, received, chunks }
+
+  function handleDCMessage(e) {
+    if (typeof e.data === 'string') {
+      const m = JSON.parse(e.data);
+      if (m.kind === 'file-start') {
+        currentIncoming = {
+          ...m, received: 0, chunks: []
+        };
+        showIncomingRow(m.id, m.name, m.size);
+      } else if (m.kind === 'file-end') {
+        if (currentIncoming && currentIncoming.id === m.id) finalizeIncoming();
+      }
+    } else {
+      // binary chunk
+      if (!currentIncoming) return;
+      currentIncoming.chunks.push(e.data);
+      currentIncoming.received += e.data.byteLength;
+      updateIncomingProgress(currentIncoming.id, currentIncoming.received, currentIncoming.size);
+    }
+  }
+
+  function showIncomingRow(id, name, size) {
+    const tray = $('tray'); tray.classList.add('visible');
+    const div = document.createElement('div');
+    div.className = 'tray-item'; div.id = 'incoming-' + id;
+    div.innerHTML = `
+      <span class="tray-name">${escHtml(name)}</span>
+      <span class="tray-incoming" id="iprog-${id}">0 / ${fmtSize(size)}</span>`;
+    $('trayItems').appendChild(div);
+  }
+
+  function updateIncomingProgress(id, received, size) {
+    const el = $('iprog-' + id);
+    if (el) el.textContent = `${fmtSize(received)} / ${fmtSize(size)}`;
+  }
+
+  function finalizeIncoming() {
+    const c = currentIncoming;
+    const blob = new Blob(c.chunks, { type: c.mime });
+    const url = URL.createObjectURL(blob);
+    const row = $('incoming-' + c.id);
+    if (row) {
+      row.innerHTML = `
+        <span class="tray-name">${escHtml(c.name)}</span>
+        <span class="tray-size">${fmtSize(c.size)}</span>
+        <button class="tray-dl">↓ save</button>`;
+      row.querySelector('.tray-dl').onclick = () => {
+        const a = document.createElement('a');
+        a.href = url; a.download = c.name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      };
+    }
+    setStatus('file received', 'p2p');
+    setTimeout(() => setStatus(remoteReady ? 'p2p connected' : 'connected', remoteReady ? 'p2p' : 'ok'), 2500);
+    currentIncoming = null;
+  }
+
+  // ---------- UI wiring ----------
+  $('room').addEventListener('change', connect);
+  $('pass').addEventListener('change', connect);
   document.addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 
-  // Text area
-  const area = document.getElementById('area');
+  const area = $('area');
   area.addEventListener('input', () => {
     clearTimeout(typeTimer);
-    typeTimer = setTimeout(() => { if (area.value.trim()) publish(area.value); }, 600);
+    typeTimer = setTimeout(() => { if (area.value.trim()) publishText(area.value); }, 600);
   });
   document.addEventListener('paste', e => {
     if (!client?.connected) return;
     const text = (e.clipboardData || window.clipboardData).getData('text');
     if (!text) return;
-    setTimeout(() => publish(area.value || text), 60);
+    setTimeout(() => publishText(area.value || text), 60);
   });
 
-  // File input
-  const fileInput = document.getElementById('fileInput');
-  const dropzone = document.getElementById('dropzone');
-
-  fileInput.addEventListener('change', () => {
-    [...fileInput.files].forEach(sendFile);
-    fileInput.value = '';
-  });
-
+  const fileInput = $('fileInput'), dropzone = $('dropzone');
+  fileInput.addEventListener('change', () => { [...fileInput.files].forEach(sendFile); fileInput.value=''; });
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
   dropzone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropzone.classList.remove('over');
+    e.preventDefault(); dropzone.classList.remove('over');
     [...e.dataTransfer.files].forEach(sendFile);
   });
 </script>
