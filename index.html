@@ -15,6 +15,7 @@
     --text: #e8e8f0;
     --muted: #5a5a72;
     --danger: #ff4d6d;
+    --warning: #f5a623;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,12 +55,7 @@
     gap: 16px;
   }
 
-  .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 4px;
-  }
+  .logo { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
   .logo span { color: var(--accent); }
 
   .row {
@@ -80,7 +76,7 @@
     white-space: nowrap;
   }
 
-  input {
+  input[type=text], input[type=password] {
     flex: 1;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -92,25 +88,16 @@
     outline: none;
     transition: border-color 0.2s;
   }
-  input:focus { border-color: var(--accent); }
+  input[type=text]:focus, input[type=password]:focus { border-color: var(--accent); }
 
   .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-    transition: background 0.3s;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted); flex-shrink: 0; transition: background 0.3s;
   }
-  .dot.on {
-    background: var(--accent);
-    box-shadow: 0 0 6px var(--accent);
-    animation: pulse 2s infinite;
-  }
+  .dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 2s infinite; }
 
   textarea {
-    width: 100%;
-    min-height: 280px;
+    width: 100%; min-height: 220px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -119,44 +106,99 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.88rem;
     line-height: 1.7;
-    outline: none;
-    resize: vertical;
-    transition: border-color 0.2s;
+    outline: none; resize: vertical; transition: border-color 0.2s;
   }
   textarea:focus { border-color: var(--border); }
   textarea::placeholder { color: var(--muted); }
 
-  .footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  /* File drop zone */
+  .dropzone {
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
   }
+  .dropzone:hover, .dropzone.over {
+    border-color: var(--accent);
+    background: rgba(0,229,160,0.04);
+  }
+  .dropzone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .dropzone-inner { pointer-events: none; }
+  .dropzone-icon { font-size: 1.6rem; margin-bottom: 6px; color: var(--muted); }
+  .dropzone-label { font-size: 0.78rem; color: var(--muted); }
+  .dropzone-label span { color: var(--accent); }
 
-  .hint { font-size: 0.7rem; color: var(--muted); }
-
-  .status {
-    font-size: 0.72rem;
-    padding: 6px 14px;
+  /* Progress bar */
+  .progress-wrap {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--muted);
-    transition: color 0.2s, border-color 0.2s;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: none;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .progress-bar-bg { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.15s; }
+
+  /* File tray */
+  .tray {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
+  .tray.visible { display: flex; }
+  .tray-header {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .tray-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .tray-item:last-child { border-bottom: none; }
+  .tray-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tray-size { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
+  .tray-dl {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .tray-dl:hover { background: rgba(0,229,160,0.12); }
+  .tray-incoming { color: var(--warning); font-size: 0.72rem; }
+
+  .footer { display: flex; justify-content: space-between; align-items: center; }
+  .hint { font-size: 0.7rem; color: var(--muted); }
+  .status {
+    font-size: 0.72rem; padding: 6px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--muted); transition: color 0.2s, border-color 0.2s;
   }
   .status.ok { color: var(--accent); border-color: #1e2e25; }
+  .status.warn { color: var(--warning); border-color: #2e2618; }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  @media (max-width: 500px) {
-    .row { flex-wrap: wrap; }
-  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @media (max-width: 500px) { .row { flex-wrap: wrap; } }
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="logo">Clip<span>Bridge</span></div>
 
@@ -168,13 +210,39 @@
     <div class="dot" id="dot"></div>
   </div>
 
-  <textarea id="area" placeholder="Paste here on one laptop → instantly appears on the other.
+  <textarea id="area" placeholder="Paste here on one device → instantly appears on the other.
 
 Same Room + Password on both devices.
 Works across any two computers on the internet."></textarea>
 
+  <!-- File drop zone -->
+  <div class="dropzone" id="dropzone">
+    <input type="file" id="fileInput" multiple />
+    <div class="dropzone-inner">
+      <div class="dropzone-icon">📎</div>
+      <div class="dropzone-label">Drop files here or <span>browse</span> — sends to paired device</div>
+    </div>
+  </div>
+
+  <!-- Upload progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label">
+      <span id="progressName">Sending…</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Received files tray -->
+  <div class="tray" id="tray">
+    <div class="tray-header">received files</div>
+    <div id="trayItems"></div>
+  </div>
+
   <div class="footer">
-    <span class="hint">auto-sends on paste · 600ms debounce on type</span>
+    <span class="hint">text: auto-send on paste · 600ms debounce · files: chunked transfer</span>
     <span class="status" id="status">not connected</span>
   </div>
 </div>
@@ -182,20 +250,25 @@ Works across any two computers on the internet."></textarea>
 <script src="https://unpkg.com/mqtt@5.8.1/dist/mqtt.min.js"></script>
 <script>
   let client = null, hash = null, lastTs = null, typeTimer = null;
+  const CHUNK_SIZE = 32 * 1024; // 32 KB per chunk (MQTT payload safe)
+
+  // --- in-flight reassembly map ---
+  // key: transferId, value: { name, size, totalChunks, chunks: Map<index, b64str>, mime }
+  const inFlight = {};
 
   async function hashPass(s) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
     return Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2,'0')).join('').slice(0, 12);
   }
 
-  function topic() {
-    return `cb2/${document.getElementById('room').value.trim()}/${hash}`;
+  function topic(suffix = '') {
+    return `cb2/${document.getElementById('room').value.trim()}/${hash}${suffix}`;
   }
 
-  function setStatus(msg, ok) {
+  function setStatus(msg, cls = '') {
     const el = document.getElementById('status');
     el.textContent = msg;
-    el.className = 'status' + (ok ? ' ok' : '');
+    el.className = 'status' + (cls ? ' ' + cls : '');
   }
 
   function setDot(on) {
@@ -215,24 +288,172 @@ Works across any two computers on the internet."></textarea>
 
     client.on('connect', () => {
       client.subscribe(topic());
+      client.subscribe(topic('/file'));
       setDot(true);
-      setStatus('connected', true);
+      setStatus('connected', 'ok');
     });
-
     client.on('error', () => setStatus('error'));
     client.on('close', () => { setDot(false); setStatus('disconnected'); });
 
     client.on('message', (t, msg) => {
-      try {
-        const p = JSON.parse(msg.toString());
-        if (p.ts === lastTs) return;
-        lastTs = p.ts;
-        document.getElementById('area').value = p.content;
-        navigator.clipboard.writeText(p.content).catch(() => {});
-        setStatus('received!', true);
-        setTimeout(() => setStatus('connected', true), 2000);
-      } catch(e) {}
+      if (t.endsWith('/file')) {
+        handleFileMessage(msg);
+      } else {
+        handleTextMessage(msg);
+      }
     });
+  }
+
+  function handleTextMessage(msg) {
+    try {
+      const p = JSON.parse(msg.toString());
+      if (p.ts === lastTs) return;
+      lastTs = p.ts;
+      document.getElementById('area').value = p.content;
+      navigator.clipboard.writeText(p.content).catch(() => {});
+      setStatus('received!', 'ok');
+      setTimeout(() => setStatus('connected', 'ok'), 2000);
+    } catch(e) {}
+  }
+
+  function handleFileMessage(msg) {
+    try {
+      const p = JSON.parse(msg.toString());
+
+      // ignore our own messages
+      if (p.origin === myId) return;
+
+      const { transferId, name, mime, size, totalChunks, chunkIndex, data } = p;
+
+      if (!inFlight[transferId]) {
+        inFlight[transferId] = { name, mime, size, totalChunks, chunks: new Map() };
+        showIncomingIndicator(transferId, name, totalChunks);
+      }
+
+      const tf = inFlight[transferId];
+      tf.chunks.set(chunkIndex, data);
+
+      updateIncomingProgress(transferId, tf.chunks.size, tf.totalChunks);
+
+      if (tf.chunks.size === tf.totalChunks) {
+        reassembleFile(transferId, tf);
+        delete inFlight[transferId];
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  function showIncomingIndicator(transferId, name, totalChunks) {
+    const tray = document.getElementById('tray');
+    const items = document.getElementById('trayItems');
+    tray.classList.add('visible');
+
+    const div = document.createElement('div');
+    div.className = 'tray-item';
+    div.id = 'incoming-' + transferId;
+    div.innerHTML = `<span class="tray-name">${escHtml(name)}</span><span class="tray-incoming" id="iprog-${transferId}">0 / ${totalChunks} chunks</span>`;
+    items.appendChild(div);
+  }
+
+  function updateIncomingProgress(transferId, received, total) {
+    const el = document.getElementById('iprog-' + transferId);
+    if (el) el.textContent = `${received} / ${total} chunks`;
+  }
+
+  function reassembleFile(transferId, tf) {
+    const parts = [];
+    for (let i = 0; i < tf.totalChunks; i++) {
+      const b64 = tf.chunks.get(i);
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+      parts.push(bytes);
+    }
+
+    const blob = new Blob(parts, { type: tf.mime || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+
+    const row = document.getElementById('incoming-' + transferId);
+    if (row) {
+      row.innerHTML = `
+        <span class="tray-name">${escHtml(tf.name)}</span>
+        <span class="tray-size">${fmtSize(tf.size)}</span>
+        <button class="tray-dl" onclick="triggerDownload('${url}','${escHtml(tf.name)}')">↓ save</button>
+      `;
+    }
+
+    setStatus('file received!', 'ok');
+    setTimeout(() => setStatus('connected', 'ok'), 2500);
+  }
+
+  function triggerDownload(url, name) {
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // unique ID to suppress our own reflected messages
+  const myId = Math.random().toString(36).slice(2);
+
+  async function sendFile(file) {
+    if (!client || !client.connected) { setStatus('not connected'); return; }
+
+    const MAX_MB = 5;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      setStatus(`max ${MAX_MB} MB per file`, 'warn');
+      setTimeout(() => setStatus('connected', 'ok'), 3000);
+      return;
+    }
+
+    const transferId = Math.random().toString(36).slice(2);
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const totalChunks = Math.ceil(bytes.length / CHUNK_SIZE);
+
+    // show progress
+    const pw = document.getElementById('progressWrap');
+    pw.classList.add('visible');
+    document.getElementById('progressName').textContent = file.name;
+
+    for (let i = 0; i < totalChunks; i++) {
+      const slice = bytes.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      // base64 encode
+      let binary = '';
+      for (let j = 0; j < slice.length; j++) binary += String.fromCharCode(slice[j]);
+      const b64 = btoa(binary);
+
+      const payload = JSON.stringify({
+        origin: myId,
+        transferId,
+        name: file.name,
+        mime: file.type || 'application/octet-stream',
+        size: file.size,
+        totalChunks,
+        chunkIndex: i,
+        data: b64
+      });
+
+      client.publish(topic('/file'), payload);
+
+      const pct = Math.round(((i + 1) / totalChunks) * 100);
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressBar').style.width = pct + '%';
+
+      // yield to avoid blocking
+      await new Promise(r => setTimeout(r, 10));
+    }
+
+    setStatus('file sent!', 'ok');
+    setTimeout(() => { setStatus('connected', 'ok'); pw.classList.remove('visible'); }, 2500);
   }
 
   function publish(content) {
@@ -240,35 +461,43 @@ Works across any two computers on the internet."></textarea>
     const ts = Date.now();
     lastTs = ts;
     client.publish(topic(), JSON.stringify({ content, ts }));
-    setStatus('synced!', true);
-    setTimeout(() => setStatus('connected', true), 1500);
+    setStatus('synced!', 'ok');
+    setTimeout(() => setStatus('connected', 'ok'), 1500);
   }
 
-  // Connect when room/pass are filled in
+  // Connect triggers
   document.getElementById('room').addEventListener('change', connect);
   document.getElementById('pass').addEventListener('change', connect);
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 
-  // Also try on Enter key
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') connect();
-  });
-
+  // Text area
   const area = document.getElementById('area');
-
-  // Debounced auto-send on type
   area.addEventListener('input', () => {
     clearTimeout(typeTimer);
-    typeTimer = setTimeout(() => {
-      if (area.value.trim()) publish(area.value);
-    }, 600);
+    typeTimer = setTimeout(() => { if (area.value.trim()) publish(area.value); }, 600);
   });
-
-  // Instant send on paste
   document.addEventListener('paste', e => {
     if (!client?.connected) return;
     const text = (e.clipboardData || window.clipboardData).getData('text');
     if (!text) return;
     setTimeout(() => publish(area.value || text), 60);
+  });
+
+  // File input
+  const fileInput = document.getElementById('fileInput');
+  const dropzone = document.getElementById('dropzone');
+
+  fileInput.addEventListener('change', () => {
+    [...fileInput.files].forEach(sendFile);
+    fileInput.value = '';
+  });
+
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('over');
+    [...e.dataTransfer.files].forEach(sendFile);
   });
 </script>
 </body>
